@@ -1,0 +1,22 @@
+FROM nvidia/cuda:10.2-cudnn8-linux
+
+EXPOSE 22
+CMD ["/usr/sbin/sshd", "-D"]
+ENV PATH /opt/conda/bin:$PATH
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+    /bin/bash ~/miniconda.sh -b -p /opt/conda && \
+    rm ~/miniconda.sh && \
+    /opt/conda/bin/conda clean -ay && \
+    echo ". /opt/conda/etc/profile.d/conda.sh" >> /etc/profile && \
+    echo "conda activate base" >> /etc/profile
+
+WORKDIR /root/code
+
+RUN . /opt/conda/etc/profile.d/conda.sh && \
+    conda create -n crystal_generation -y python=3.8.13 && \
+    conda activate crystal_generation && \
+    conda install pip -y && \
+    pip install torch==1.9.0+cu102 torchvision==0.10.0+cu102 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html && \
+    pip install -r requirements.txt && \
+    conda install -c pyg pytorch-cluster==1.5.9 && \
+    conda install -c pyg pytorch-scatter==2.0.7 && \
